@@ -38,12 +38,11 @@ public class PartyFinder extends Thread {
 	public void run() {
 		// Do initial setup before main loop.
 		int counter = 0;
-		int threshold = 950;
 
 		while ( running ) {		   
 			// Read values from the sensors.
 			// More noise from motors behind the robot.
-			soundLeft = sensorLeft.readRawValue() + 125;
+			soundLeft = sensorLeft.readRawValue() + 100;
 			// Less noise in front.
 			soundRight = sensorRight.readRawValue();
 			
@@ -89,17 +88,7 @@ public class PartyFinder extends Thread {
 			 * 6. When average doens't get lower we are at the party.
 			 */												
 			
-			if (soundLeftAvg > threshold + 125 && soundRightAvg > threshold) {
-				motorMode = Car.stop;
-			} else if (soundLeftAvg > soundRightAvg) {
-				motorMode = Car.forward;
-			} else if (soundLeftAvg < soundRightAvg) {
-				motorMode = Car.backward;
-			}
-			
-			if (counter % averageCount == 0) {
-				threshold = (motorMode == Car.stop) ? 950 : 800;
-			}							
+			motorMode = (soundLeftAvg > soundRightAvg) ? Car.forward : Car.backward;						
 				
 			// Adjust angle based on difference between values.
 			if (motorMode == Car.forward) {

@@ -3,9 +3,9 @@ import lejos.nxt.LightSensor;
 import lejos.nxt.MotorPort;
 import lejos.nxt.SensorPort;
 
-public class Vehicle2a {
-	static LightSensor portLeft = new LightSensor(SensorPort.S2);
-	static LightSensor portRight = new LightSensor(SensorPort.S3);
+public class Vehicle2b {
+	static LightSensor portLeft = new LightSensor(SensorPort.S3);
+	static LightSensor portRight = new LightSensor(SensorPort.S2);
 	static MotorPort motorLeft = MotorPort.B;
 	static MotorPort motorRight = MotorPort.C;
 	static int rawLeft;

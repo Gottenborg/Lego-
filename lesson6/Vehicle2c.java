@@ -2,29 +2,27 @@ import lejos.nxt.LCD;
 import lejos.nxt.LightSensor;
 import lejos.nxt.MotorPort;
 import lejos.nxt.SensorPort;
+import lejos.nxt.UltrasonicSensor;
 
-public class Vehicle2a {
-	static LightSensor portLeft = new LightSensor(SensorPort.S2);
-	static LightSensor portRight = new LightSensor(SensorPort.S3);
+public class Vehicle2c {
+	static UltrasonicSensor portLeft = new UltrasonicSensor(SensorPort.S2);
+	static UltrasonicSensor portRight = new UltrasonicSensor(SensorPort.S3);
 	static MotorPort motorLeft = MotorPort.B;
 	static MotorPort motorRight = MotorPort.C;
 	static int rawLeft;
 	static int rawRight;
-	static double powerLeft;
-	static double powerRight;
+	static double powerLeft = 75;
+	static double powerRight = 75;
 	
 	public static void main(String[] args) throws InterruptedException {
-		LCD.clear();
-		portLeft.setFloodlight(false);
-		portRight.setFloodlight(false);
+		LCD.clear();		
 		
 		while(true) {
-			rawLeft = portLeft.readNormalizedValue() - 139;
-			rawRight = portRight.readNormalizedValue() - 139;
-			powerLeft = 50.0 - ((50.0 / 745.0) * rawLeft) * 2;
-			powerRight = 50.0 - ((50.0 / 745.0) * rawRight) * 2;	
-			powerLeft = (powerLeft < 0) ? powerLeft - 50 : powerLeft + 50;
-			powerRight = (powerRight < 0) ? powerRight - 50 : powerRight + 50;
+			rawLeft = portLeft.getDistance();
+			rawRight = portRight.getDistance();						
+			
+			powerLeft = 0.625 * rawRight + 37.5;
+			powerRight = 0.625 * rawLeft + 37.5;					
 			
 			motorLeft.controlMotor((int)powerLeft, MotorPort.FORWARD);
 			motorRight.controlMotor((int)powerRight, MotorPort.FORWARD);

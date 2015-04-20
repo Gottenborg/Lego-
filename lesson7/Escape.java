@@ -12,7 +12,7 @@ public class Escape extends Thread {
 
 	private int power = 70, ms = 500;
 	TouchSensor left = new TouchSensor(SensorPort.S1);
-	TouchSensor right = new TouchSensor(SensorPort.S2);
+	TouchSensor right = new TouchSensor(SensorPort.S4);
 	Random r = new Random();
 	
 	public Escape(SharedCar car) {
@@ -40,15 +40,17 @@ public class Escape extends Thread {
 	    	else if(left.isPressed()) {
 	    		car.backward(power, power);
 	    		Delay.msDelay(ms);
-    			car.forward(0, power);
+    			car.forward(power, 0);
     			Delay.msDelay(ms);
 	    	}
 	    	// Right bump
 	    	else if(right.isPressed()) {
 	    		car.backward(power, power);
 	    		Delay.msDelay(ms);
-    			car.forward(power, 0);
+    			car.forward(0, power);
     			Delay.msDelay(ms);
+	    	} else {
+	    		car.noCommand();
 	    	}
         }
     }

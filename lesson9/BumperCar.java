@@ -67,14 +67,16 @@ class DriveForward implements Behavior {
 }
 
 class DetectWhite extends Thread implements Behavior {
-	private LightSensor light;
+	private LightSensor rightLight;
+	private LightSensor leftLight;
 //	private UltrasonicSensor sonar;
 	private boolean _suppressed = false;
 	private boolean active = false;
 	private int distance = 255;
 
 	public DetectWhite() {
-		light = new LightSensor(SensorPort.S3);
+		rightLight = new LightSensor(SensorPort.S3);
+		leftLight = new LightSensor(SensorPort.S2);
 //		sonar = new UltrasonicSensor(SensorPort.S3);
 		this.setDaemon(true);
 		this.start();
@@ -86,7 +88,9 @@ class DetectWhite extends Thread implements Behavior {
 	}
 
 	public int takeControl() {
-		return Math.max(0, light.readValue() - 40);
+		return Math.max(0, Math.max(
+				rightLight.readValue() - 40,
+				leftLight.readValue() - 40) );
 	}
 	
 	public void suppress() {

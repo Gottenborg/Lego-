@@ -1,3 +1,6 @@
+//import robowar.Exit;
+import java.util.ArrayList;
+
 import lejos.nxt.*;
 import lejos.robotics.RegulatedMotor;
 
@@ -19,13 +22,12 @@ import lejos.robotics.RegulatedMotor;
 public class BumperCar {
 
 	public static void main(String[] args) {
-		Motor.B.setSpeed(2000);
-		Motor.A.setSpeed(400);
-		Motor.C.setSpeed(400);
+		Motor.B.setSpeed(2000);	
 		Behavior b1 = new DriveForward();
 		Behavior b2 = new DetectWhite();
-		Behavior b3 = new Exit();
-		Behavior[] behaviorList = { b1, b2, b3 };
+		Behavior b3 = new DetectRobot();
+		Behavior b4 = new Exit();
+		Behavior[] behaviorList = { b1, b3, b2, b4 };
 		Arbitrator arbitrator = new Arbitrator(behaviorList);
 		LCD.drawString("Bumper Car", 0, 1);
 		Button.waitForAnyPress();
@@ -37,6 +39,9 @@ public class BumperCar {
 		}
 		Motor.B.backward();
 		arbitrator.start();
+
+		LCD.drawString("Left: ", 0, 0);
+		LCD.drawString("Right: ", 0, 1);
 	}
 }
 
@@ -54,6 +59,8 @@ class DriveForward implements Behavior {
 
 	public void action() {
 		_suppressed = false;
+		Motor.A.setSpeed(500);
+		Motor.C.setSpeed(500);		
 		Motor.A.forward();
 		Motor.C.forward();
 		LCD.drawString("Drive forward", 0, 2);
@@ -69,30 +76,34 @@ class DriveForward implements Behavior {
 class DetectWhite extends Thread implements Behavior {
 	private LightSensor rightLight;
 	private LightSensor leftLight;
-//	private UltrasonicSensor sonar;
+	// private UltrasonicSensor sonar;
 	private boolean _suppressed = false;
 	private boolean active = false;
 	private int distance = 255;
+	private boolean detectedLeft = false;
+	private boolean detectedRight = false;
 
 	public DetectWhite() {
 		rightLight = new LightSensor(SensorPort.S3);
 		leftLight = new LightSensor(SensorPort.S2);
-//		sonar = new UltrasonicSensor(SensorPort.S3);
+		// sonar = new UltrasonicSensor(SensorPort.S3);
 		this.setDaemon(true);
 		this.start();
 	}
 
 	public void run() {
-//		while (true)
-//			distance = sonar.getDistance();
+		// while (true)
+		// distance = sonar.getDistance();
 	}
 
 	public int takeControl() {
-		return Math.max(0, Math.max(
-				rightLight.readValue() - 40,
-				leftLight.readValue() - 40) );
+		detectedLeft = leftLight.readValue() > 50;
+		detectedRight = rightLight.readValue() > 50;
+		if (detectedLeft || detectedRight)
+			return 100;
+		return 0;
 	}
-	
+
 	public void suppress() {
 		_suppressed = true;// standard practice for suppress methods
 	}
@@ -101,20 +112,33 @@ class DetectWhite extends Thread implements Behavior {
 		_suppressed = false;
 		active = true;
 		Sound.beepSequenceUp();
+		
+		Motor.A.setSpeed(2000);
+		Motor.C.setSpeed(2000);
 
-		// Backward for 1000 msec
+		// Backward for 200 msec
 		LCD.drawString("Drive backward", 0, 3);
 		Motor.A.backward();
 		Motor.C.backward();
 		long now = System.currentTimeMillis();
-		while (!_suppressed && (System.currentTimeMillis() < now + 1000)) {
+		while (!_suppressed && (System.currentTimeMillis() < now + 200)) {
 			Thread.yield(); // don't exit till suppressed
-		}		
+		}
 
-		// Turn
-		LCD.drawString("Turn          ", 0, 3);		
-		Motor.A.rotate(-180, true);// start Motor.A rotating backward
-		Motor.C.rotate(-800, true); // rotate C farther to make the turn
+		if (detectedLeft && !detectedRight) {
+			// Turn right.
+			Motor.A.rotate(500, true);// start Motor.A rotating backward
+			Motor.C.rotate(- 500, true);
+		} else if (!detectedLeft && detectedRight) {
+			// Turn left.
+			Motor.A.rotate(- 500, true);// start Motor.A rotating backward
+			Motor.C.rotate(500, true);
+		} else {
+			// Turn 180 degrees.
+			Motor.A.rotate(- 750, true);// start Motor.A rotating backward
+			Motor.C.rotate(750, true);
+		}
+		
 		while (!_suppressed && Motor.C.isMoving()) {
 			Thread.yield(); // don't exit till suppressed
 		}
@@ -123,7 +147,92 @@ class DetectWhite extends Thread implements Behavior {
 		LCD.drawString("Stopped       ", 0, 3);
 		Sound.beepSequence();
 		active = false;
+	}
+}
 
+class DetectRobot extends Thread implements Behavior {
+	private UltrasonicSensor sonarLeft;
+	private UltrasonicSensor sonarRight;
+	private boolean _suppressed = false;
+	private boolean active = false;
+	private int distanceLeft = 255;
+	private int distanceRight = 255;
+	private ArrayList<Integer> leftDistArray = new ArrayList<Integer>();
+	private ArrayList<Integer> rightDistArray = new ArrayList<Integer>();
+	private boolean detectedLeft = false;
+	private boolean detectedRight = false;
+	private long cooldownMs = 2000;
+	private long detectTime = Long.MAX_VALUE;
+
+	public DetectRobot() {
+		sonarLeft = new UltrasonicSensor(SensorPort.S1);
+		sonarRight = new UltrasonicSensor(SensorPort.S4);
+		this.setDaemon(true);
+		this.start();
+	}
+
+	public void run() {
+		while (true) {
+//			LCD.drawInt(distanceLeft, 4, 10, 0);
+//			LCD.drawInt(distanceRight, 4, 10, 1);
+			leftDistArray.add(sonarLeft.getDistance());
+			rightDistArray.add(sonarRight.getDistance());
+			if (leftDistArray.size() > 3) leftDistArray.remove(0);
+			if (rightDistArray.size() > 3) rightDistArray.remove(0);
+			int sum = 0;
+			for (Integer i : leftDistArray) {
+				sum += i;
+			}
+			distanceLeft = sum / leftDistArray.size();
+			sum = 0;
+			for (Integer j : rightDistArray) {
+				sum += j;
+			}
+			distanceRight = sum / rightDistArray.size();
+		}
+	}
+
+	public int takeControl() {
+		if (System.currentTimeMillis() < detectTime + cooldownMs)
+			return 0;
+		detectedLeft = distanceLeft < 30;
+		detectedRight = distanceRight < 30;
+		if (detectedLeft || detectedRight)
+			return 50;
+		return 0;
+	}
+
+	public void suppress() {
+		_suppressed = true;// standard practice for suppress methods
+	}
+
+	public void action() {
+		_suppressed = false;
+		active = true;
+		Motor.A.setSpeed(2000);
+		Motor.C.setSpeed(2000);
+		if (detectedLeft) {
+			Sound.beepSequenceUp();
+			Motor.A.rotate(-100, true);
+			Motor.C.rotate(100, true);
+
+		} else if (detectedRight) {
+			Sound.beepSequence();
+			Motor.A.rotate(100, true);
+			Motor.C.rotate(-100, true);
+		}
+
+		detectTime = System.currentTimeMillis();
+
+		while (!_suppressed && Motor.C.isMoving()) {
+			Thread.yield(); // don't exit till suppressed
+		}
+
+		Motor.A.stop();
+		Motor.C.stop();
+		LCD.drawString("Stopped       ", 0, 3);
+		// Sound.beepSequence();
+		active = false;
 	}
 }
 

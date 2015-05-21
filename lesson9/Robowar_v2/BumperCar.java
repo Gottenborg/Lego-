@@ -27,7 +27,8 @@ public class BumperCar {
 		Behavior b2 = new DetectWhite();
 		Behavior b3 = new DetectRobot();
 		Behavior b4 = new Exit();
-		Behavior[] behaviorList = { b1, b3, b2, b4 };
+		Behavior b5 = new LookAround();
+		Behavior[] behaviorList = { b1, b3, b2, b5, b4 };
 		Arbitrator arbitrator = new Arbitrator(behaviorList);
 		LCD.drawString("Bumper Car", 0, 1);
 		Button.waitForAnyPress();
@@ -67,8 +68,8 @@ class DriveForward implements Behavior {
 		while (!_suppressed) {
 			Thread.yield(); // don't exit till suppressed
 		}
-		Motor.A.stop(); // not strictly necessary, but good programming practice
-		Motor.C.stop();
+		Motor.A.stop(true); // not strictly necessary, but good programming practice
+		Motor.C.stop(true);
 		LCD.drawString("Drive stopped", 0, 2);
 	}
 }
@@ -76,29 +77,30 @@ class DriveForward implements Behavior {
 class DetectWhite extends Thread implements Behavior {
 	private LightSensor rightLight;
 	private LightSensor leftLight;
-	// private UltrasonicSensor sonar;
 	private boolean _suppressed = false;
 	private boolean active = false;
-	private int distance = 255;
 	private boolean detectedLeft = false;
 	private boolean detectedRight = false;
+	private int leftLightValue = 0;
+	private int rightLightValue = 0;
 
 	public DetectWhite() {
 		rightLight = new LightSensor(SensorPort.S3);
 		leftLight = new LightSensor(SensorPort.S2);
-		// sonar = new UltrasonicSensor(SensorPort.S3);
 		this.setDaemon(true);
 		this.start();
 	}
 
 	public void run() {
-		// while (true)
-		// distance = sonar.getDistance();
+		 while (true) {
+			 leftLightValue = leftLight.readValue();
+			 rightLightValue = rightLight.readValue();
+		 }
 	}
 
 	public int takeControl() {
-		detectedLeft = leftLight.readValue() > 50;
-		detectedRight = rightLight.readValue() > 50;
+		detectedLeft = leftLightValue > 45;
+		detectedRight = rightLightValue > 45;
 		if (detectedLeft || detectedRight)
 			return 100;
 		return 0;
@@ -111,7 +113,7 @@ class DetectWhite extends Thread implements Behavior {
 	public void action() {
 		_suppressed = false;
 		active = true;
-		Sound.beepSequenceUp();
+//		Sound.beepSequenceUp();
 		
 		Motor.A.setSpeed(2000);
 		Motor.C.setSpeed(2000);
@@ -127,25 +129,25 @@ class DetectWhite extends Thread implements Behavior {
 
 		if (detectedLeft && !detectedRight) {
 			// Turn right.
-			Motor.A.rotate(500, true);// start Motor.A rotating backward
-			Motor.C.rotate(- 500, true);
+			Motor.A.rotate(360, true);
+			Motor.C.rotate(- 360, true);
 		} else if (!detectedLeft && detectedRight) {
 			// Turn left.
-			Motor.A.rotate(- 500, true);// start Motor.A rotating backward
-			Motor.C.rotate(500, true);
+			Motor.A.rotate(- 360, true);
+			Motor.C.rotate(360, true);
 		} else {
 			// Turn 180 degrees.
-			Motor.A.rotate(- 750, true);// start Motor.A rotating backward
-			Motor.C.rotate(750, true);
+			Motor.A.rotate(- 540, true);
+			Motor.C.rotate(540, true);
 		}
 		
 		while (!_suppressed && Motor.C.isMoving()) {
 			Thread.yield(); // don't exit till suppressed
 		}
-		Motor.A.stop();
-		Motor.C.stop();
+		Motor.A.stop(true);
+		Motor.C.stop(true);
 		LCD.drawString("Stopped       ", 0, 3);
-		Sound.beepSequence();
+//		Sound.beepSequence();
 		active = false;
 	}
 }
@@ -173,8 +175,6 @@ class DetectRobot extends Thread implements Behavior {
 
 	public void run() {
 		while (true) {
-//			LCD.drawInt(distanceLeft, 4, 10, 0);
-//			LCD.drawInt(distanceRight, 4, 10, 1);
 			leftDistArray.add(sonarLeft.getDistance());
 			rightDistArray.add(sonarRight.getDistance());
 			if (leftDistArray.size() > 3) leftDistArray.remove(0);
@@ -212,12 +212,12 @@ class DetectRobot extends Thread implements Behavior {
 		Motor.A.setSpeed(2000);
 		Motor.C.setSpeed(2000);
 		if (detectedLeft) {
-			Sound.beepSequenceUp();
+//			Sound.beepSequenceUp();
 			Motor.A.rotate(-100, true);
 			Motor.C.rotate(100, true);
 
 		} else if (detectedRight) {
-			Sound.beepSequence();
+//			Sound.beepSequence();
 			Motor.A.rotate(100, true);
 			Motor.C.rotate(-100, true);
 		}
@@ -228,11 +228,46 @@ class DetectRobot extends Thread implements Behavior {
 			Thread.yield(); // don't exit till suppressed
 		}
 
-		Motor.A.stop();
-		Motor.C.stop();
+		Motor.A.stop(true);
+		Motor.C.stop(true);
 		LCD.drawString("Stopped       ", 0, 3);
 		// Sound.beepSequence();
 		active = false;
+	}
+}
+
+class LookAround implements Behavior {
+	private boolean _suppressed = false;
+	private boolean haveBeenRun = false;
+
+	public int takeControl() {
+		if (haveBeenRun) {
+			return 0;
+		} else {
+			return 150;
+		}		
+	}
+
+	public void suppress() {
+		_suppressed = true;// standard practice for suppress methods
+	}
+
+	public void action() {
+		_suppressed = false;	
+		haveBeenRun = true;
+		Motor.A.setSpeed(2000);
+		Motor.C.setSpeed(2000);
+		
+		// Spin around to look for the opponent.
+		Motor.A.rotate(- 1000, true);
+		Motor.C.rotate(1000, true);		
+		
+		while (!_suppressed && Motor.C.isMoving()) {
+			Thread.yield(); // don't exit till suppressed
+		}
+
+		Motor.A.stop(true);
+		Motor.C.stop(true);
 	}
 }
 

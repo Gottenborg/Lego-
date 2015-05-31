@@ -17,7 +17,7 @@ import lejos.util.Delay;
  * @author  Ole Caprani
  * @version 13.05.15
  */
-public class PilotStraight 
+public class PilotTurn2 
 {
    private static void show(Pose p)
    {
@@ -30,30 +30,31 @@ public class PilotStraight
    public static void main(String [] args)  
    throws Exception 
    {
-       double wheelDiameter = 5.5, trackWidth = 16.5;
+	   double mult = 1.007;
+       double leftWheelDiameter = 5.5 * mult, rightWheelDiameter = 5.484 * mult, trackWidth = 16.5;
        double travelSpeed = 5, rotateSpeed = 45;
        NXTRegulatedMotor left = Motor.A;
        NXTRegulatedMotor right = Motor.C;
 	   
-       DifferentialPilot pilot = new DifferentialPilot(wheelDiameter, trackWidth, left, right);
+       DifferentialPilot pilot = new DifferentialPilot(leftWheelDiameter, rightWheelDiameter, trackWidth, left, right, false);
        OdometryPoseProvider poseProvider = new OdometryPoseProvider(pilot);
        Pose initialPose = new Pose(0,0,0);
-       RConsole.open();
        pilot.setTravelSpeed(travelSpeed);
        pilot.setRotateSpeed(rotateSpeed);
-       poseProvider.setPose(initialPose);
        
-       LCD.clear();
-       LCD.drawString("Pilot square", 0, 0);
+       LCD.drawString("PilotTurn2", 0, 0);
        Button.waitForAnyPress();
-	   
-       pilot.travel(25);           
-       show(poseProvider.getPose());
+       
+       while (!Button.ESCAPE.isDown()) {
+    	   poseProvider.setPose(initialPose);           
+           pilot.rotate(720);           
+           show(poseProvider.getPose());
+           Button.waitForAnyPress();
+       }       
        
        pilot.stop();
        LCD.drawString("Program stopped", 0, 0);
        Button.waitForAnyPress();
        Thread.sleep(2000);
-       RConsole.close();
    }
 }

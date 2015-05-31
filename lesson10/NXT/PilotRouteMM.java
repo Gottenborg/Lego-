@@ -2,18 +2,19 @@ import lejos.nxt.*;
 import lejos.robotics.navigation.DifferentialPilot;
 import lejos.robotics.navigation.Move;
 
-public class PilotRoute
+public class PilotRouteMM
 {
     private SlaveIOStreams PC;
     
-	private double wheelDiameter = 5.5, trackWidth = 16.0;
-	private double travelSpeed = 5, rotateSpeed = 45;
-	private NXTRegulatedMotor left = Motor.B;
-	private NXTRegulatedMotor right = Motor.C;
+    double mult = 1.007;
+    double leftWheelDiameter = 55 * mult, rightWheelDiameter = 54.84 * mult, trackWidth = 165;
+    double travelSpeed = 50, rotateSpeed = 45;
+    NXTRegulatedMotor left = Motor.A;
+    NXTRegulatedMotor right = Motor.C;
 	   
-	private DifferentialPilot pilot = new DifferentialPilot(wheelDiameter, trackWidth, left, right);
+    DifferentialPilot pilot = new DifferentialPilot(leftWheelDiameter, rightWheelDiameter, trackWidth, left, right, false);
 
-	public PilotRoute(boolean usb) 
+	public PilotRouteMM(boolean usb) 
 	{
     	PC = new SlaveIOStreams(usb);
     	PC.open();
@@ -47,11 +48,25 @@ public class PilotRoute
 		while ( ! Button.ENTER.isDown()) Thread.yield();
 		Sound.twoBeeps();
 		
-		travel(50);
-		rotate(90);	
-		travel(20);
+		travel(500);
+		rotate(90);
+		travel(200);
 		rotate(-90);
-		travel(50);
+		travel(500);	
+		
+		/*
+		travel(500);
+		rotate(90);	
+		travel(200);
+		rotate(-90);
+		travel(500);
+		rotate(90);
+		travel(200);
+		rotate(90);
+		travel(700);
+		rotate(90);
+		travel(200);
+		 */
 		
 		while ( ! Button.ENTER.isDown()) Thread.yield();
 		
@@ -64,10 +79,10 @@ public class PilotRoute
 	
 	public static void main(String[] args) 
 	{
-		PilotRoute route = new PilotRoute(false);
+		PilotRouteMM route = new PilotRouteMM(false);
 		
 		LCD.clear();
-		LCD.drawString("Pilot route", 0, 0);
+		LCD.drawString("PilotRouteMM", 0, 0);
 		route.go();		
 	}
 }

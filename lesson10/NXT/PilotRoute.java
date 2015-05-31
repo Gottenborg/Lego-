@@ -6,12 +6,13 @@ public class PilotRoute
 {
     private SlaveIOStreams PC;
     
-	private double wheelDiameter = 5.5, trackWidth = 16.0;
-	private double travelSpeed = 5, rotateSpeed = 45;
-	private NXTRegulatedMotor left = Motor.B;
-	private NXTRegulatedMotor right = Motor.C;
+    double mult = 1.007;
+    double leftWheelDiameter = 5.5 * mult, rightWheelDiameter = 5.484 * mult, trackWidth = 16.5;
+    double travelSpeed = 5, rotateSpeed = 45;
+    NXTRegulatedMotor left = Motor.A;
+    NXTRegulatedMotor right = Motor.C;
 	   
-	private DifferentialPilot pilot = new DifferentialPilot(wheelDiameter, trackWidth, left, right);
+    DifferentialPilot pilot = new DifferentialPilot(leftWheelDiameter, rightWheelDiameter, trackWidth, left, right, false);
 
 	public PilotRoute(boolean usb) 
 	{

@@ -1,6 +1,6 @@
 /**
  * The PilotMonitor receives move parameters from a
- * vehicle drining in a route of DifferentialPilot
+ * vehicle driving in a route of DifferentialPilot
  * travel or rotate steps. The move parameters are used to update
  * a visualization of the route and possible locations of
  * the vehicle after each step.
@@ -18,14 +18,14 @@ public class PilotMonitor
 	private InputOutputStreams NXT;
 	private boolean USB = false;
 	private Route route = new Route();
-    private ParticleSet particles  = new ParticleSet(10);
+    private ParticleSet particles  = new ParticleSet(1000);
     private PilotGUI view = new PilotGUI(particles);
     private Move move;
     
     public PilotMonitor()
     {
     	String m;
-        view.update(route.getRoute());
+        view.update(route.getRoute(), false);
         NXT = new InputOutputStreams(USB);
         do {
         	m = NXT.open();
@@ -52,7 +52,7 @@ public class PilotMonitor
         	move = getMove();
         	particles.applyMove(move);
         	route.update(move);
-        	view.update(route.getRoute());
+        	view.update(route.getRoute(), (move.getMoveType() == Move.MoveType.TRAVEL) ? false : true);
         	Pose p = route.getCurrentPose();
             System.out.println("Pose " + p.getX() + " " + p.getY() + " " + p.getHeading());
         }

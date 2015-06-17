@@ -23,7 +23,7 @@ public class InputOutputStreams
 		if ( USB )
 		{
 			// Connect to any NXT using USB
-			if (!conn.connectTo("usb://")){
+			if (!conn.connectTo("usb://NXT8")){
 				return "No NXT found using USB";
 			}
 		}

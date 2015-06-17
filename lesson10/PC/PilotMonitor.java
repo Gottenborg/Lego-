@@ -19,18 +19,23 @@ public class PilotMonitor
 	private boolean USB = false;
 	private Route route = new Route();
     private ParticleSet particles  = new ParticleSet(1000);
-    private PilotGUI view = new PilotGUI(particles);
+    private PilotGUI view;
     private Move move;
     
     public PilotMonitor()
     {
-    	String m;
-        view.update(route.getRoute(), false);
+    	String m;        
         NXT = new InputOutputStreams(USB);
         do {
         	m = NXT.open();
         	System.out.println(m);
         } while ( m != "Connected");
+        
+        // Receive destination from NXT.
+        int desX = (int)NXT.input();
+        int desY = (int)NXT.input();
+        view = new PilotGUI(particles, desX, desY);
+        view.update(route.getRoute(), false);
     }
     
     private Move getMove()

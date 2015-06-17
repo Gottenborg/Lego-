@@ -22,9 +22,9 @@ public class RobotGUI extends JFrame {
     // program will automatically adjust if these three constants are changed
     static int VIS_HEIGHT;            // visualization height  
     static int VIS_WIDTH;             // visualization width
-    static final int Y_OFFSET=30;     // vertical offset to visualization
+    static final int Y_OFFSET=20;     // vertical offset to visualization
     static final int X_OFFSET=20;     // horizontal offset to visualization
-    static final int POINT_WIDTH=2;   // width of points shown in the visualization
+    static final int POINT_WIDTH=1;   // width of points shown in the visualization
                                       // VIS_HEIGHT + 2 * Y_OFFSET is the window height
                                       // VIS_WIDTH + 2 * X_OFFSET is the window width
     
@@ -46,7 +46,7 @@ public class RobotGUI extends JFrame {
     	 this.particles = particles;
     	 this.m = m;
     	 VIS_WIDTH  = m.getDimX()*m.getWidth();
-    	 VIS_HEIGHT = m.getDimY()*m.getWidth();
+    	 VIS_HEIGHT = m.getDimY()*m.getWidth()+50;
          this.setSize(new Dimension(VIS_WIDTH+X_OFFSET*2, VIS_HEIGHT+Y_OFFSET*2));
          this.setTitle("Monte Carlo Localization");
          this.setVisible(true);

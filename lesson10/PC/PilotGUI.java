@@ -21,8 +21,8 @@ public class PilotGUI extends JFrame {
     // program will automatically adjust if these three constants are changed
     static final int VIS_HEIGHT=1080;  // visualization height  
     static final int VIS_WIDTH=1920;   // visualization width
-    static final int Y_OFFSET=30;     // vertical offset to visualization
-    static final int X_OFFSET=20;     // horizontal offset to visualization
+    static final int Y_OFFSET=200;     // vertical offset to visualization
+    static final int X_OFFSET=200;     // horizontal offset to visualization
     static final int POINT_WIDTH=1;  // width of points shown in the visualization
                                       // VIS_HEIGHT + 2 * Y_OFFSET is the window height
                                       // VIS_WIDTH + 2 * X_OFFSET is the window width
@@ -34,6 +34,8 @@ public class PilotGUI extends JFrame {
     ArrayList<Point> route;           // the route as seen from the vehicle
     
     ArrayList<ParticleSet> particleSets = new ArrayList<ParticleSet>();
+	private int desX;
+	private int desY;
     
     // an inner class to handle the visualization window being closed manually
     class MyWindowAdapter extends WindowAdapter {   
@@ -43,9 +45,11 @@ public class PilotGUI extends JFrame {
     }
     
     // the constructor for the Visualize class    
-    public PilotGUI(ParticleSet particles) 
+    public PilotGUI(ParticleSet particles, int desX, int desY) 
     { 
     	 this.particles = particles;
+    	 this.desX = desX;
+    	 this.desY = desY;
          this.setSize(new Dimension(VIS_WIDTH+X_OFFSET*2, VIS_HEIGHT+Y_OFFSET*2));
          this.setTitle("Monte Carlo Localization");
          this.setVisible(true);
@@ -101,7 +105,9 @@ public class PilotGUI extends JFrame {
             }
         }
         
-
+        // Draw destination.
+        g2.setColor(Color.RED);
+        g2.fillOval(winX(desX) - 5, winY(desY) + 5, 10, 10);
     }
     
     private int winX(int x)

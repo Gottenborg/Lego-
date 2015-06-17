@@ -22,8 +22,8 @@ public class ParticleSet
   public static int maxIterations = 100;
 
   // Instance variables
-  private float distanceNoiseFactor = 0.02f;
-  private float angleNoiseFactor = 1f;
+  private float distanceNoiseFactor = 0.00733f; // 0.02f;
+  private float angleNoiseFactor = 0.00833f; // 1f;  
   private int numParticles;
   private Particle[] particles;
   private Map map;

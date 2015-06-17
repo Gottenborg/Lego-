@@ -25,7 +25,7 @@ public class Particle
   private static Random rand = new Random();
   private Pose pose;
   private float weight = 1;
-  private int blackWhiteThreshold = 500;
+  private int blackWhiteThreshold = 400;
 
   /**
    * Create a particle with a specific pose
@@ -72,29 +72,23 @@ public class Particle
    * robot's light sensor reading.
    * 
    */
-  public void calculateWeight(int lightValue, Map m) 
-  {
-	  if ( m.getColor(pose) == Color.BLACK )
-	  {
-		  if ( lightValue > blackWhiteThreshold) 
-			  weight = 0.9f;
-		  else
-			  weight = 0.1f;
-	  }
-	  else 
-	  {
-		  if ( m.getColor(pose) == Color.WHITE )
-		  {
-			  if ( lightValue > blackWhiteThreshold) 
-				  weight = 0.1f;
-			  else
-				  weight = 0.9f;
-		  }
-		  else // outside the map
-			  weight = 0.0f;
-		  
-	  }	  
-  }
+	public void calculateWeight(int lightValue, Map m) {
+		if (m.getColor(pose) == Color.BLACK) {
+			if (lightValue < blackWhiteThreshold)
+				weight = 0.9f;
+			else
+				weight = 0.1f;
+		} else {
+			if (m.getColor(pose) == Color.WHITE) {
+				if (lightValue < blackWhiteThreshold)
+					weight = 0.1f;
+				else
+					weight = 0.9f;
+			} else
+				// outside the map
+				weight = 0.0f;
+		}
+	}
 
   /**
    * Apply the robot's move to the particle with a bit of random noise.
@@ -110,10 +104,10 @@ public class Particle
 
 
     pose.setLocation(new Point(
-    		         (float) (pose.getX() + xm + (distanceNoiseFactor * xm * rand.nextGaussian())),
-                     (float) (pose.getY() + ym + (distanceNoiseFactor * ym * rand.nextGaussian()))));
+    		         (float) (pose.getX() + xm + (distanceNoiseFactor * move.getDistanceTraveled() * rand.nextGaussian())),
+                     (float) (pose.getY() + ym + (distanceNoiseFactor * move.getDistanceTraveled() * rand.nextGaussian()))));
     pose.setHeading(
-       (float) (pose.getHeading() + move.getAngleTurned() + (angleNoiseFactor  * rand.nextGaussian())));
+       (float) (pose.getHeading() + move.getAngleTurned() + (angleNoiseFactor * move.getAngleTurned() * rand.nextGaussian())));
     pose.setHeading((float) ((int) (pose.getHeading() + 0.5f) % 360));
 
   }

@@ -54,9 +54,9 @@ public class ArenaRobot {
 
 		Behavior b1 = new Wander(pilot);
 		Behavior b2 = new AvoidEdge(pilot);
-		Behavior b3 = new Exit(pilot);		
+		Behavior b3 = new Exit(pilot, 180);		
 		Behavior[] behaviorList = {b1, b2, b3};
-		Arbitrator arbitrator = new Arbitrator(behaviorList);
+		Arbitrator arbitrator = new Arbitrator(behaviorList);		
 		arbitrator.start();
 	}	
 }
@@ -85,7 +85,7 @@ class Wander implements Behavior {
 
 		double rand = Math.random(); 
 		if (rand > 0.5) {
-			pilot.travel(rand * 2000);
+			pilot.travel(rand * 200);
 		} else {
 			pilot.rotate((Math.random() > 0.5) ? rand * 180 : rand * -180);
 		}	
@@ -160,13 +160,18 @@ class AvoidEdge extends Thread implements Behavior {
 class Exit implements Behavior {
 	private boolean _suppressed = false;
 	private ArenaRobot pilot;
+	private int seconds;
+	private long startTime;
 
-	public Exit(ArenaRobot pilot) {
+	public Exit(ArenaRobot pilot, int seconds) {
 		this.pilot = pilot;
+		this.seconds = seconds;
+		startTime = System.currentTimeMillis();
 	}
 
 	public int takeControl() {
-		return (Button.ESCAPE.isDown()) ? 100 : 0 ; // this behavior always wants control.
+		return (Button.ESCAPE.isDown() || 
+				System.currentTimeMillis() > (startTime + seconds * 1000)) ? 100 : 0 ;
 	}
 
 	public void suppress() {
